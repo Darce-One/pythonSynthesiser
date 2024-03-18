@@ -9,11 +9,7 @@ from AudioProcessor import AudioProcessor
 
 # Parameters for audio playback
 SAMPLE_RATE = 44100
-BLOCK_SIZE = 1024  # Number of frames per buffer
-
-
-
-
+BLOCK_SIZE = 256  # Number of frames per buffer
 
 
 
@@ -39,12 +35,7 @@ def main():
         audio_processor.process_block(out)
 
 
-        # Your signal processing code goes here
-
-
         # Convert the processed data back to bytes
-        # out_data = np.array(processed_audio, dtype=np.float32)
-        #
         out_data = out.tobytes()
 
         return out_data, pyaudio.paContinue
