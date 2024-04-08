@@ -22,7 +22,7 @@ class AudioProcessor():
 
     def prepare_to_play(self) -> None:
         self.sin_gens = SinGen(self.sample_rate, 440, 0.1)
-        self.envelopes = Adsr(self.sample_rate, 0.02, 0.2, 0.8, 1.4)
+        self.envelopes = Adsr(self.sample_rate, 2, 0.2, 0.2, 1.4)
         self.envelopes.set_attack_skew(2)
         self.envelopes.set_decay_skew(0.7)
         self.envelopes.set_release_skew(4)

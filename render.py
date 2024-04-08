@@ -9,7 +9,7 @@ from AudioProcessor import AudioProcessor
 
 # PROJECT SETTINGS:
 SAMPLE_RATE: int = 44100
-TIME_IN_SECONDS: float = 5.0
+TIME_IN_SECONDS: float = 10.0
 BLOCK_SIZE: int = 256
 NUM_CHANNELS: int = 2
 
@@ -25,10 +25,11 @@ def main():
     time_in_samples: int = math.ceil(time_in_seconds * sample_rate)
     time_in_blocks: int = math.ceil(time_in_samples / block_size)
     num_samples:int = time_in_blocks * block_size
+
     # instanciate the Audio Processor
     audio_processor = AudioProcessor(sample_rate)
 
-    # create offline audio buffer
+    # initialise offline audio buffer
     out = np.zeros((num_samples, num_channels), dtype=np.float32)
 
     # instanciate objects within the Audio Processor
