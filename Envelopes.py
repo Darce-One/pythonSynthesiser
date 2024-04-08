@@ -52,6 +52,7 @@ class Adsr():
         if sustain_level < 0.0 or sustain_level> 1.0:
             raise ValueError("Sustain level out of bounds")
         self.sustain = sustain_level
+        self.resulting_sustain = sustain_level
 
     def set_release_time(self, release_time) -> None:
         if release_time < 0.0:
@@ -60,7 +61,7 @@ class Adsr():
         self._set_release_phase_delta()
 
     def _set_release_phase_delta(self) -> None:
-        self.phase_delta[3] = - self.sustain / (self.sample_rate * self.release_time)
+        self.phase_delta[3] = - self.resulting_sustain / (self.sample_rate * self.release_time)
 
     def set_release_skew(self, skew_factor:float) -> None:
         if skew_factor < 0.0:
@@ -68,23 +69,26 @@ class Adsr():
         self.skew_factors[3] = skew_factor
 
     def _trigger_release_phase(self) -> None:
-        self.just_released = False
+        # self.just_released = False
+        self.resulting_sustain = self.get_gain()
+        self.phase = self.resulting_sustain
         self.stage = 3
-        self.sustain = self.phase
         self._set_release_phase_delta()
 
     def trigger(self) -> None:
         self.triggered = True
+        self.resulting_sustain = self.sustain
         self.stage = 0
 
     def release(self) -> None:
-        self.just_released = True
+        # self.just_released = True
+        self._trigger_release_phase()
 
 
     def _check_for_transition(self) -> None:
-        if self.just_released == True:
-            self._trigger_release_phase()
-            return
+        # if self.just_released == True:
+        #     self._trigger_release_phase()
+        #     return
 
         if self.stage == 0:
             if self.phase >= 1.0:
@@ -145,19 +149,19 @@ class Adsr():
 
 
 
-@jitclass
+# @jitclass
 class Ar():
     # For Numba Jitting
-    sample_rate: numba.int32
-    cycling: numba.int32
-    stage: numba.int32
-    phase: numba.float32
-    phase_delta: numba.float32[:]
-    skew_factor: numba.float32[:]
-    triggered: numba.int32
-    done: numba.int32
-    attack: numba.float32
-    release: numba.float32
+    # sample_rate: numba.int32
+    # cycling: numba.int32
+    # stage: numba.int32
+    # phase: numba.float32
+    # phase_delta: numba.float32[:]
+    # skew_factor: numba.float32[:]
+    # triggered: numba.int32
+    # done: numba.int32
+    # attack: numba.float32
+    # release: numba.float32
 
 
     def __init__(self, sample_rate: int, attack_time: float, release_time: float, cycling: bool = False) -> None:
