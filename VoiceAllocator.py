@@ -7,10 +7,9 @@ import numpy as np
 from singleKeyPress import midi_to_freq
 
 class SynthVoice():
-    def __init__(self, generator: Phasor, envelope, gain: float):
-        self.gen = generator
-        self.env = envelope
-        self.gain = gain
+    def __init__(self):
+        self.env = None
+        self.gain = 0.0
         self.noteID = -1
 
     def __repr__(self) -> str:
@@ -22,66 +21,34 @@ class SynthVoice():
     def get_noteID(self) -> int:
         return self.noteID
 
-    def get_gain(self) -> float:
-        return self.env.get_gain()
+    def process_block(self, buffer: np.ndarray):
+        for i in range(buffer.shape[0]):
+            buffer[i] += self.process()
 
     def process(self) -> float:
-        return self.gain * self.env.process_sample(self.gen.process())
+        return 0.0
 
-    def trigger(self, noteID: int) -> None:
-        self.noteID = noteID
-        self.env.trigger()
-        self.gen.set_new_frequency(midi_to_freq(noteID))
+    def get_gain(self):
+        return 0.0
 
-    def release(self) ->None:
-        try:
-            self.env.release()
-        except:
-            pass
+    def is_done(self):
+        return bool(False);
 
-    def is_released(self) -> bool:
-        # returns true if the envelope stage is the last one - in release phase
-        return self.env.stage == self.env.phase_delta.size - 1
+    def trigger(self, noteID):
+        pass
 
-    def is_done(self) -> bool:
-        return not self.env.triggered
+    def release(self):
+        pass
 
-    def set_attack_time(self, attack_time) -> None:
-        self.env.set_attack_time(attack_time)
-
-    def set_attack_skew(self, attack_skew) -> None:
-        self.env.set_attack_skew(attack_skew)
-
-    def set_decay_time(self, decay_time) -> None:
-        try:
-            self.env.set_attack_time(decay_time)
-        except:
-            pass
-
-    def set_decay_skew(self, decay_skew) -> None:
-        try:
-            self.env.set_attack_skew(decay_skew)
-        except:
-            pass
-
-    def set_release_time(self, release_time) -> None:
-        self.env.set_attack_time(release_time)
-
-    def set_release_skew(self, release_skew) -> None:
-        self.env.set_attack_skew(release_skew)
-
-
+    def is_released(self):
+        return bool(False)
 
 class VoiceAllocator():
-    def __init__(self, synth_voice: SynthVoice, num_voices: int = 3) -> None:
-        self.num_voices: int = num_voices
-        self.voices: List[SynthVoice] = self._make_voice_array(synth_voice)
+    def __init__(self) -> None:
+        self.voices: List[SynthVoice] = []
 
-    def _make_voice_array(self, synth_voice) -> List[SynthVoice]:
-        voices: List[SynthVoice] = []
-        for i in range(self.num_voices):
-            voices.append(copy.deepcopy(synth_voice))
-        return voices
+    def add_voice(self, voice: SynthVoice):
+        self.voices.append(voice)
 
     def _find_done_voice(self) -> int:
         for idx, voc in enumerate(self.voices):
@@ -135,34 +102,12 @@ class VoiceAllocator():
                 print(F"Released voice {idx}")
             idx+=1
 
+    def process_block(self, buffer: np.ndarray):
+        for voc in self.voices:
+            voc.process_block(buffer)
+
     def process(self) -> float:
         sample: float = 0.0
         for voc in self.voices:
             sample += voc.process()
         return sample
-
-
-
-
-
-def test():
-    sample_rate = 44100
-    gen = SinGen(sample_rate, 440)
-    env = Adsr(sample_rate)
-    vo = SynthVoice(gen, env, 0.1)
-    va = VoiceAllocator(vo)
-    # del gen, env
-
-    # va.voices[0].trigger(200)
-    # va.voices[2].trigger(300)
-    #
-    va.trigger(60)
-    va.trigger(61)
-
-
-    for voc in va.voices:
-        print(voc.is_done())
-
-
-if __name__ == "__main__":
-    test()

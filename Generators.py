@@ -1,5 +1,6 @@
 from typing import List
 import math
+import numpy as np
 
 class Phasor():
     def __init__(self, sample_rate: int, frequency: float) -> None:
@@ -25,6 +26,10 @@ class Phasor():
     def set_gain(self, new_gain) -> None:
         self.gain = new_gain
 
+
+    def process_block(self, buffer: np.ndarray):
+        for i in range(buffer.shape[0]):
+            buffer[i] += self.process()
 
     def process(self) -> float:
         sample = self.phase * self.gain

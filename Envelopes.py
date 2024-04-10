@@ -3,7 +3,24 @@ import numba
 from numba.experimental import jitclass
 from typing import List
 
+@jitclass
 class Adsr():
+    sample_rate: numba.int32
+    cycling: numba.int32
+    stage: numba.int32
+    phase: numba.float32
+    phase_delta: numba.float32[:]
+    skew_factors: numba.float32[:]
+    triggered: numba.int32
+    done: numba.int32
+    attack_time: numba.float32
+    release_time: numba.float32
+    decay_time: numba.float32
+    sustain: numba.float32
+    resulting_sustain: numba.float32
+    just_released: numba.int32
+
+
     def __init__(self, sample_rate: int, attack_time: float = 0.05, decay_time: float = 0.05,
         sustain: float = 1.0, release_time: float = 0.05) -> None:
 
@@ -149,19 +166,18 @@ class Adsr():
 
 
 
-# @jitclass
 class Ar():
     # For Numba Jitting
-    # sample_rate: numba.int32
-    # cycling: numba.int32
-    # stage: numba.int32
-    # phase: numba.float32
-    # phase_delta: numba.float32[:]
-    # skew_factor: numba.float32[:]
-    # triggered: numba.int32
-    # done: numba.int32
-    # attack: numba.float32
-    # release: numba.float32
+    sample_rate: numba.int32
+    cycling: numba.int32
+    stage: numba.int32
+    phase: numba.float32
+    phase_delta: numba.float32[:]
+    skew_factor: numba.float32[:]
+    triggered: numba.int32
+    done: numba.int32
+    attack_time: numba.float32
+    release_time: numba.float32
 
 
     def __init__(self, sample_rate: int, attack_time: float, release_time: float, cycling: bool = False) -> None:
@@ -177,12 +193,12 @@ class Ar():
         self.set_release_time(release_time)
 
     def set_attack_time(self, attack_time: float) -> None:
-        self.attack = attack_time
-        self.phase_delta[0] = 1 / (self.sample_rate * self.attack)
+        self.attack_time = attack_time
+        self.phase_delta[0] = 1 / (self.sample_rate * self.attack_time)
 
     def set_release_time(self, release_time:float) -> None:
-        self.release = release_time
-        self.phase_delta[1] = -1 / (self.sample_rate * self.release)
+        self.release_time = release_time
+        self.phase_delta[1] = -1 / (self.sample_rate * self.release_time)
 
     def set_attack_skew(self, skew_factor: float) -> None:
         if skew_factor < 0.0:
@@ -198,6 +214,10 @@ class Ar():
         self.triggered = True
         # self.done = False
         self.stage = 0
+
+    def release(self) -> None:
+        # do nothing
+        pass
 
     def _check_for_transition(self) -> None:
         if self.stage == 0:
