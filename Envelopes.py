@@ -129,9 +129,11 @@ class Adsr():
                 return
 
     def get_gain(self) -> float:
+        # Attack
         if self.stage == 0:
             return self.phase**self.skew_factors[0]
 
+        # Decay
         elif self.stage == 1:
             if self.sustain == 1.0:
                 return 1.0
@@ -139,11 +141,13 @@ class Adsr():
                 return ((p - sus)/(1 - sus))
             def inv_transform(trans, sus):
                 return (trans * (1 - sus)) + sus
-            return inv_transform(transform(self.phase, self.sustain)**self.skew_factors[1], self.sustain)
+            return inv_transform(transform(self.phase, self.resulting_sustain)**self.skew_factors[1], self.resulting_sustain)
 
+        # Sustain
         elif self.stage == 2:
             return self.phase
 
+        # Release
         else:
             if self.sustain == 0.0:
                 return 0.0
@@ -151,7 +155,7 @@ class Adsr():
                 return p / sus
             def inv_transform(trans, sus):
                 return trans * sus
-            return inv_transform(transform(self.phase, self.sustain)**self.skew_factors[3], self.sustain)
+            return inv_transform(transform(self.phase, self.resulting_sustain)**self.skew_factors[3], self.resulting_sustain)
 
     def process_sample(self, sample: float) -> float:
         if self.triggered == False:
@@ -161,6 +165,15 @@ class Adsr():
             self.phase += self.phase_delta[self.stage]
             self._check_for_transition()
             return sample * gain
+
+    def process_gain(self) -> float:
+        if self.triggered == False:
+            return 0.0
+        else:
+            gain = self.get_gain()
+            self.phase += self.phase_delta[self.stage]
+            self._check_for_transition()
+            return gain
 
 
 
@@ -235,6 +248,7 @@ class Ar():
                     self.triggered = False
             else:
                 return
+
     def get_gain(self):
         return self.phase**self.skew_factor[self.stage]
 

@@ -13,7 +13,7 @@ from VoiceAllocator import SynthVoice, VoiceAllocator
 
 # Parameters for audio playback
 SAMPLE_RATE = 44100
-BLOCK_SIZE = 1024  # Number of frames per buffer
+BLOCK_SIZE = 256  # Number of frames per buffer
 
 def midi_to_freq(midi: int) -> float:
     return 440 * 2**((midi-69)/12)
@@ -23,11 +23,17 @@ class Voice(SynthVoice):
         super().__init__()
 
         self.sample_rate = SAMPLE_RATE
-        self.gen = SawGen(self.sample_rate, 440)
-        self.env = Adsr(self.sample_rate, 0.02, 0.2, 0.3, release_time=0.7)
+        self.gen = SinGen(self.sample_rate, 440)
+        self.env = Adsr(self.sample_rate, 0.02, 0.5, 0.7, release_time=1.7)
+        self.env.set_attack_skew(2)
+        self.env.set_decay_skew(3)
+        self.env.set_release_skew(4)
+        # self.env = Ar(self.sample_rate, 0.8, 2)
 
-    def process(self):
-        return self.env.process_sample(self.gen.process())
+    def process(self) -> float:
+        outsample = self.env.process_gain() * self.gen.process() * self.gain
+        # print(outsample)
+        return outsample
 
     def get_gain(self):
         return self.env.get_gain()
@@ -70,11 +76,9 @@ class AudioProcessor():
 
     def prepare_to_play(self) -> None:
         self.va = VoiceAllocator()
-        num_voices = 3
+        num_voices = 5
         for i in range(num_voices):
             voice = Voice()
-            voice.env.set_release_skew(4)
-            voice.env.set_attack_skew(2)
             self.va.add_voice(voice)
 
     def process_block(self, buffer: np.ndarray) -> None:
@@ -100,6 +104,7 @@ def main():
 
         # Attempt to listen for keyboard input without blocking
         audio_processor.process_block(out)
+
 
 
         # Convert the processed data back to bytes

@@ -8,12 +8,9 @@ from singleKeyPress import midi_to_freq
 
 class SynthVoice():
     def __init__(self):
-        self.env = None
-        self.gain = 0.0
+        # self.env = None
+        self.gain = 0.2
         self.noteID = -1
-
-    def __repr__(self) -> str:
-        return f"Synth voice. noteID: {self.noteID}, stage: {self.env.stage}, released: {self.is_released}, done: {self.is_done}"
 
     def midi_to_freq(self, midi: int) -> float:
         return 440 * 2**((midi-69)/12)
@@ -25,23 +22,27 @@ class SynthVoice():
         for i in range(buffer.shape[0]):
             buffer[i] += self.process()
 
+
     def process(self) -> float:
         return 0.0
 
-    def get_gain(self):
+    def get_gain(self) -> float:
         return 0.0
 
-    def is_done(self):
-        return bool(False);
+    def is_done(self) -> bool:
+        return False
 
-    def trigger(self, noteID):
+    def trigger(self, noteID) -> None:
         pass
 
-    def release(self):
+    def release(self) -> None:
         pass
 
-    def is_released(self):
-        return bool(False)
+    def is_released(self) -> bool:
+        return False
+
+
+
 
 class VoiceAllocator():
     def __init__(self) -> None:
