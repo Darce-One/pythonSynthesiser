@@ -12,7 +12,8 @@ class SynthVoice():
         self.gain = 0.2
         self.noteID = -1
 
-    def midi_to_freq(self, midi: int) -> float:
+    @staticmethod
+    def midi_to_freq(midi: int) -> float:
         return 440 * 2**((midi-69)/12)
 
     def get_noteID(self) -> int:
