@@ -13,7 +13,7 @@ from VoiceAllocator import SynthVoice, VoiceAllocator
 
 # Parameters for audio playback
 SAMPLE_RATE = 44100
-BLOCK_SIZE = 256  # Number of frames per buffer
+BLOCK_SIZE = 512  # Number of frames per buffer
 
 def midi_to_freq(midi: int) -> float:
     return 440 * 2**((midi-69)/12)
@@ -23,25 +23,33 @@ class Voice(SynthVoice):
         super().__init__()
 
         self.sample_rate = SAMPLE_RATE
+        self.carrier_freq = 440
         self.gen = SinGen(self.sample_rate, 440)
+        self.modulator_osc = SinGen(self.sample_rate, 880)
         self.env = Adsr(self.sample_rate, 0.02, 0.5, 0.7, release_time=1.7)
+        self.modulator_env = Ar(self.sample_rate, 0.02, 2)
         self.env.set_attack_skew(2)
         self.env.set_decay_skew(3)
         self.env.set_release_skew(4)
+        self.modulator_env.set_attack_skew(2)
+        self.modulator_env.set_release_skew(3)
         # self.env = Ar(self.sample_rate, 0.8, 2)
 
     def process(self) -> float:
-        outsample = self.env.process_gain() * self.gen.process() * self.gain
-        # print(outsample)
-        return outsample
+        self.gen.set_new_frequency(self.carrier_freq + self.modulator_env.process_gain() * self.modulator_osc.process() * self.carrier_freq)
+
+        return self.env.process_gain() * self.gen.process() * self.gain
 
     def get_gain(self):
         return self.env.get_gain()
 
     def trigger(self, noteID):
         self.noteID = noteID
+        self.carrier_freq = midi_to_freq(noteID)
         self.env.trigger()
-        self.gen.set_new_frequency(midi_to_freq(noteID))
+        self.modulator_env.trigger()
+        self.modulator_osc.set_new_frequency(self.carrier_freq*2)
+        self.gen.set_new_frequency(self.carrier_freq)
 
     def release(self):
         self.env.release()
@@ -76,7 +84,7 @@ class AudioProcessor():
 
     def prepare_to_play(self) -> None:
         self.va = VoiceAllocator()
-        num_voices = 5
+        num_voices = 4
         for i in range(num_voices):
             voice = Voice()
             self.va.add_voice(voice)

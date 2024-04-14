@@ -262,3 +262,12 @@ class Ar():
             self.phase += self.phase_delta[self.stage]
             self._check_for_transition()
             return sample * gain
+
+    def process_gain(self):
+        if self.triggered == False:
+            return 0.0
+        else:
+            gain = self.get_gain()
+            self.phase += self.phase_delta[self.stage]
+            self._check_for_transition()
+            return gain
