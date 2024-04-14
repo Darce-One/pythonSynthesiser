@@ -32,7 +32,7 @@ class Voice(SynthVoice):
         self.env.set_decay_skew(3)
         self.env.set_release_skew(4)
         self.modulator_env.set_attack_skew(2)
-        self.modulator_env.set_release_skew(3)
+        self.modulator_env.set_release_skew(5)
         # self.env = Ar(self.sample_rate, 0.8, 2)
 
     def process(self) -> float:
@@ -48,7 +48,7 @@ class Voice(SynthVoice):
         self.carrier_freq = midi_to_freq(noteID)
         self.env.trigger()
         self.modulator_env.trigger()
-        self.modulator_osc.set_new_frequency(self.carrier_freq*2)
+        self.modulator_osc.set_new_frequency(self.carrier_freq*2.01)
         self.gen.set_new_frequency(self.carrier_freq)
 
     def release(self):
