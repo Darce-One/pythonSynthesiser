@@ -93,14 +93,14 @@ class VoiceAllocator():
         # Find available voice:
         voc_id = self._voice_idx_to_steal(noteID)
         self.voices[voc_id].trigger(noteID)
-        print(f"Triggered voice {voc_id}")
+        # print(f"Triggered voice {voc_id}")
 
     def release(self, noteID: int) -> None:
         idx = 0
         for voc in self.voices:
             if voc.noteID == noteID and not voc.is_released():
                 voc.release()
-                print(F"Released voice {idx}")
+                # print(F"Released voice {idx}")
             idx+=1
 
     def process_block(self, buffer: np.ndarray):
