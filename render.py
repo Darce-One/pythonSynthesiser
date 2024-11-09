@@ -11,7 +11,7 @@ from AudioProcessor import AudioProcessor
 SAMPLE_RATE: int = 44100
 TIME_IN_SECONDS: float = 10.0
 BLOCK_SIZE: int = 256
-NUM_CHANNELS: int = 1
+NUM_CHANNELS: int = 2
 
 def main():
     # Get global variables (in case they are imported from another file)
